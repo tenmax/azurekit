@@ -10,7 +10,7 @@ Java 6 or higher
 
 # Getting Start
 
-1. First, you must prepare your [Connection String](https://azure.microsoft.com/en-us/documentation/articles/storage-configure-connection-string/) for your storage account. The format is 
+1. First, you must prepare your [Connection String](https://azure.microsoft.com/en-us/documentation/articles/storage-configure-connection-string/) for your storage account. The format is
 
 	```bash
 	DefaultEndpointsProtocol=[http|https];AccountName=myAccountName;AccountKey=myAccountKey
@@ -29,7 +29,7 @@ Usage
 	```bash
 	azurecat https://<account-name>.blob.core.windows.net/<container-name>/<blob-path>
 	```
-	
+
 2. Concatenate and print the resources with prefix
 
 	```bash
@@ -46,7 +46,7 @@ Usage
 	```bash
 	azurecat -z --prefix --postfix gz https://<account-name>.blob.core.windows.net/<container-name>/<blob-prefix>
 	```
-	
+
 The full help for `azurecat`
 
 ```
@@ -61,7 +61,7 @@ usage: azurecat [-c <connection-string>] <blob-uri>
  -v                      The version
  -z                      The gzip format
 ```
- 
+
 
 ## AzureSink
 
@@ -81,7 +81,7 @@ usage: azuresink [-c <connection-string>] <blob-uri>
  -f         Force upload even the blob exists
  -h         The help information
  -v         The version
-```	
+```
 
 
 ## AzureSAS
@@ -103,7 +103,7 @@ usage: azuresas [-c <connection-string>] -e <seconds> <blob-uri>
  -h         The help information
  -v         The version
 ```
-	
+
 # Configuration File
 
 You can put your connection strings at `~/.azure/storagekeys` line by line
@@ -111,8 +111,8 @@ You can put your connection strings at `~/.azure/storagekeys` line by line
 Here is the example.
 
 ```
-DefaultEndpointsProtocol=https;AccountName= myAccountName1;AccountKey=myAccountKey1
-DefaultEndpointsProtocol=https;AccountName= myAccountName2;AccountKey=myAccountKey2
+DefaultEndpointsProtocol=https;AccountName=myAccountName1;AccountKey=myAccountKey1
+DefaultEndpointsProtocol=https;AccountName=myAccountName2;AccountKey=myAccountKey2
 ```
 
 then, you can use the resource directly without connection string specified.
