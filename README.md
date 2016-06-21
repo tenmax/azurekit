@@ -9,7 +9,7 @@
 
 
 # Requirement
-Java 6 or higher
+Java 8
 
 # Getting Start
 
@@ -156,4 +156,21 @@ then, you can use the resource directly without connection string specified.
 
 ```bash
 echo 'helloworld' | azurecat https://<account-name>.blob.core.windows.net/<container-name>/<blob-path>
+```
+
+# Installation
+
+## Mac
+
+Install azurekit via [Homebrew](http://brew.sh/).
+
+```bash
+brew tap tenmax/azure
+brew install azurekit
+```
+
+Upgrade azurekit
+
+```bash
+brew upgrade azurekit
 ```
