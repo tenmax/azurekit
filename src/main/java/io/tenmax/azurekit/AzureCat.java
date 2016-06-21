@@ -1,10 +1,15 @@
 package io.tenmax.azurekit;
 
-import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.Constants;
+import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.*;
+import io.tenmax.azurekit.azure.AccountUtils;
 import org.apache.commons.cli.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -24,11 +29,11 @@ public class AzureCat {
 
         // create the Options
         Options options = new Options();
-        options.addOption( "b", true, "Set the read buffer size in KBytes" );
-        options.addOption( "c", true, "The connection string" );
-        options.addOption( "h", false, "The help information" );
-        options.addOption( "v", false, "The version" );
-        options.addOption( "z", false, "The gzip format" );
+        options.addOption("b", true, "Set the read buffer size in KBytes");
+        options.addOption("c", true, "The connection string");
+        options.addOption("h", false, "The help information");
+        options.addOption("v", false, "The version");
+        options.addOption("z", false, "The gzip format");
         options.addOption(Option.builder()
                 .longOpt("prefix")
                 .desc("cat all the blobs with the prefix")
@@ -45,13 +50,13 @@ public class AzureCat {
             // parse the command line arguments
             commandLine = parser.parse(options, args);
         } catch (ParseException e) {
-            System.out.println( "Unexpected exception:" + e.getMessage() );
+            System.out.println("Unexpected exception:" + e.getMessage());
             System.exit(1);
         }
 
         if (commandLine.hasOption('v')) {
             printVersion();
-        } else if(commandLine.hasOption('h')) {
+        } else if (commandLine.hasOption('h')) {
             printHelp(options);
         } else if (commandLine.getArgs().length != 1) {
             printHelp(options);
@@ -71,62 +76,15 @@ public class AzureCat {
         System.exit(0);
     }
 
-    public void readAccountsFromFile() {
-        File file = new File(System.getProperty("user.home") + "/.azure/storagekeys");
-        if (!file.exists()) {
-            return;
-        }
-
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new FileReader(file));
-            String line;
-            while ( (line = in.readLine()) != null) {
-                CloudStorageAccount account = CloudStorageAccount.parse(line);
-                accounts.add(account);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void readAccountsFromArgs() {
-        if ( !commandLine.hasOption('c')) {
-            return;
-        }
-
-        CloudStorageAccount account = null;
-        try {
-            account = CloudStorageAccount.parse(commandLine.getOptionValue('c'));
-            accounts.add(account);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-    }
-
     public AzureCat(String[] args) {
         parseArgs(args);
 
-        readAccountsFromFile();
-        readAccountsFromArgs();
+        accounts = AccountUtils.readAccounts(commandLine.getOptionValue('c', ""));
 
         boolean prefixMode = commandLine.hasOption("prefix");
         String postfix = commandLine.hasOption("postfix") ?
                 commandLine.getOptionValue("postfix") :
                 null;
-
-        URI blobUri = null;
-
 
         String path = commandLine.getArgs()[0];
         try {
@@ -135,21 +93,8 @@ public class AzureCat {
             // don't use the decoded path. Use the original one
         }
 
-        blobUri = URI.create(path);
-
-        String accountName = blobUri.getHost().split("\\.")[0];
-        CloudStorageAccount account = null;
-        for (CloudStorageAccount tmpAccount : accounts) {
-            if(tmpAccount.getCredentials().getAccountName().equals(accountName)) {
-                account = tmpAccount;
-                break;
-            }
-        }
-        if (account == null) {
-            System.err.println("Connection String for " + accountName + " is not defined");
-            System.exit(-1);
-            return;
-        }
+        URI blobUri = URI.create(path);
+        CloudStorageAccount account = AccountUtils.getAccountFromUri(accounts, blobUri);
 
         if (prefixMode) {
             catPrefix(account, blobUri, postfix);
@@ -210,7 +155,7 @@ public class AzureCat {
 
                     try {
                         printBlob(blob);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         System.err.println("Can't print the blob at " + blob.getUri());
                         e.printStackTrace();
                         System.exit(-1);
@@ -232,13 +177,12 @@ public class AzureCat {
                               String postfix)
             throws URISyntaxException, StorageException, IOException {
         Iterable<ListBlobItem> blobs = directory.listBlobs();
-        for (ListBlobItem blobItem: blobs) {
+        for (ListBlobItem blobItem : blobs) {
             if (blobItem instanceof CloudBlob) {
                 CloudBlob blob = (CloudBlob) blobItem;
 
-                if(postfix != null &&
-                        !blob.getUri().toString().endsWith(postfix))
-                {
+                if (postfix != null &&
+                        !blob.getUri().toString().endsWith(postfix)) {
                     continue;
                 }
 
@@ -250,23 +194,21 @@ public class AzureCat {
     }
 
 
-
     private void printBlob(CloudBlob blob) throws StorageException, IOException {
         int readSize = READ_SIZE;
 
-        if (commandLine.hasOption("b") ) {
+        if (commandLine.hasOption("b")) {
             readSize = Constants.KB * Integer.parseInt(commandLine.getOptionValue("b"));
         }
         blob.setStreamMinimumReadSizeInBytes(readSize);
         InputStream in = blob.openInputStream();
 
 
-        if(commandLine.hasOption("z")) {
+        if (commandLine.hasOption("z")) {
             in = new GZIPInputStream(in);
         }
 
-        try
-        {
+        try {
             byte[] buffer = new byte[readSize];
             int read;
             while ((read = in.read(buffer)) > 0) {

@@ -15,8 +15,10 @@ task createAllStartScripts() << {
 }
 
 def scripts = [ 'azurecat': 'io.tenmax.azurekit.AzureCat',
-                'azuresink':'io.tenmax.azurekit.AzureSink',
-                'azuresas':'io.tenmax.azurekit.AzureSAS'
+                'azuresink': 'io.tenmax.azurekit.AzureSink',
+                'azuresas':'io.tenmax.azurekit.AzureSAS',
+                'azuretbl2json':'io.tenmax.azurekit.AzureTable2JSON',
+                'azuretbl2csv':'io.tenmax.azurekit.AzureTable2CSV'
 ]
     scripts.each() { scriptName, className ->
     def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) {

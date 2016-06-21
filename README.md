@@ -1,9 +1,12 @@
 # AzureKit
 *azurekit* is a CLI toolkit to interact with [microsoft azure blob storage](https://azure.microsoft.com/en-us/documentation/articles/storage-introduction/#blob-storage). There are several commands included.
 
-1. azruecat - Output a blob content to stdout
+1. azruecat - Output a blob content to stdout.
 2. azuresink - Pipe stdin to a azure storage blob.
-3. azuresas - Generate the Shared-Acess-Signature to stdout.
+3. azuresas - Generate the Shared-Access-Signature to stdout.
+4. azuretbl2csv - Dump azure table as csv file.
+5. azuretbl2json - Dump azure table as json file.
+
 
 # Requirement
 Java 6 or higher
@@ -103,6 +106,40 @@ usage: azuresas [-c <connection-string>] -e <seconds> <blob-uri>
  -h         The help information
  -v         The version
 ```
+
+## AzureTable2CSV and AzureTable2JSON
+
+Usage
+
+1. Dump a table
+
+	```bash
+	azuretbl2csv https://<account-name>.table.core.windows.net/<table-name>
+   azuretbl2json https://<account-name>.table.core.windows.net/<table-name>
+	```
+
+2. Select some columns
+
+	```bash
+	azuretbl2json -c "column1,column2" https://<account-name>.table.core.windows.net/<table-name>
+	```
+3. Apply filter
+
+	```bash
+	azuretbl2json -f "(PartitionKey eq 'pk1' and RowKey eq 'rk1')" https://<account-name>.table.core.windows.net/<table-name>
+	```
+
+The full help for `azuretbl2json` 
+
+```
+usage: azuretbl2json [-c <connection-string>] <table-url>
+ -c <arg>             The connection string
+ -C <arg>             The selected columns
+ -f <arg>             The filter string
+ -H,--no-header-row   Do not output column names.
+ -t <arg>             The take count. Default=1000
+```
+
 
 # Configuration File
 
