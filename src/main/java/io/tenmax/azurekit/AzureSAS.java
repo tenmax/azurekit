@@ -1,19 +1,20 @@
 package io.tenmax.azurekit;
 
-import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.*;
+import io.tenmax.azurekit.azure.AccountUtils;
 import org.apache.commons.cli.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 public class AzureSAS {
     private static final int BUFFER_SIZE = 4 * 1024 * 1024;
@@ -27,22 +28,22 @@ public class AzureSAS {
 
         // create the Options
         Options options = new Options();
-        options.addOption( "c", true, "The connection string" );
-        options.addOption( "e", true, "The seconds to expired. (default=86400s)" );
-        options.addOption( "h", false, "The help information" );
-        options.addOption( "v", false, "The version" );
+        options.addOption("c", true, "The connection string");
+        options.addOption("e", true, "The seconds to expired. (default=86400s)");
+        options.addOption("h", false, "The help information");
+        options.addOption("v", false, "The version");
 
         try {
             // parse the command line arguments
             commandLine = parser.parse(options, args);
         } catch (ParseException e) {
-            System.out.println( "Unexpected exception:" + e.getMessage() );
+            System.out.println("Unexpected exception:" + e.getMessage());
             System.exit(1);
         }
 
         if (commandLine.hasOption('v')) {
             printVersion();
-        } else if(commandLine.hasOption('h')) {
+        } else if (commandLine.hasOption('h')) {
             printHelp(options);
         } else if (commandLine.getArgs().length != 1) {
             printHelp(options);
@@ -62,38 +63,8 @@ public class AzureSAS {
         System.exit(0);
     }
 
-
-
-    public void readAccountsFromFile() {
-        File file = new File(System.getProperty("user.home") + "/.azure/storagekeys");
-        if (!file.exists()) {
-            return;
-        }
-
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new FileReader(file));
-            String line;
-            while ( (line = in.readLine()) != null) {
-                CloudStorageAccount account = CloudStorageAccount.parse(line);
-                accounts.add(account);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     public void readAccountsFromArgs() {
-        if ( !commandLine.hasOption('c')) {
+        if (!commandLine.hasOption('c')) {
             return;
         }
 
@@ -110,11 +81,8 @@ public class AzureSAS {
     public AzureSAS(String[] args) {
         parseArgs(args);
 
-        readAccountsFromFile();
-        readAccountsFromArgs();
+        accounts = AccountUtils.readAccounts(commandLine.getOptionValue('c', ""));
 
-
-        URI blobUri = null;
         String path = commandLine.getArgs()[0];
         try {
             path = URLDecoder.decode(path, "utf-8");
@@ -122,21 +90,8 @@ public class AzureSAS {
             // don't use the decoded path. Use the original one
         }
 
-        blobUri = URI.create(path);
-
-        String accountName = blobUri.getHost().split("\\.")[0];
-        CloudStorageAccount account = null;
-        for (CloudStorageAccount tmpAccount : accounts) {
-            if(tmpAccount.getCredentials().getAccountName().equals(accountName)) {
-                account = tmpAccount;
-                break;
-            }
-        }
-        if (account == null) {
-            System.err.println("Connection String for " + accountName + " is not defined");
-            System.exit(-1);
-            return;
-        }
+        URI blobUri = URI.create(path);
+        CloudStorageAccount account = AccountUtils.getAccountFromUri(accounts, blobUri);
 
         int duration = 86400;
         if (commandLine.hasOption("e")) {
@@ -146,7 +101,6 @@ public class AzureSAS {
         printSasUrl(account, blobUri, duration);
     }
 
-
     private void printSasUrl(CloudStorageAccount account, URI blobUri, int seconds) {
 
         try {
@@ -155,7 +109,7 @@ public class AzureSAS {
 
             CloudBlobClient blobClient = account.createCloudBlobClient();
             CloudBlobContainer blobContainer = blobClient.getContainerReference(container);
-            if(!blobContainer.exists()) {
+            if (!blobContainer.exists()) {
                 System.err.println("container not exists");
                 return;
             }

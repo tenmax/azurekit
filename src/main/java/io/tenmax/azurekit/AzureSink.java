@@ -2,6 +2,7 @@ package io.tenmax.azurekit;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.blob.*;
+import io.tenmax.azurekit.azure.AccountUtils;
 import org.apache.commons.cli.*;
 
 import java.io.*;
@@ -59,58 +60,11 @@ public class AzureSink {
         System.exit(0);
     }
 
-    public void readAccountsFromFile() {
-        File file = new File(System.getProperty("user.home") + "/.azure/storagekeys");
-        if (!file.exists()) {
-            return;
-        }
-
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new FileReader(file));
-            String line;
-            while ( (line = in.readLine()) != null) {
-                CloudStorageAccount account = CloudStorageAccount.parse(line);
-                accounts.add(account);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void readAccountsFromArgs() {
-        if ( !commandLine.hasOption('c')) {
-            return;
-        }
-
-        CloudStorageAccount account = null;
-        try {
-            account = CloudStorageAccount.parse(commandLine.getOptionValue('c'));
-            accounts.add(account);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-    }
 
     public AzureSink(String[] args) {
         parseArgs(args);
 
-        readAccountsFromFile();
-        readAccountsFromArgs();
-
-
-        URI blobUri = null;
-
+        accounts = AccountUtils.readAccounts(commandLine.getOptionValue('c', ""));
 
         String path = commandLine.getArgs()[0];
         try {
@@ -119,21 +73,8 @@ public class AzureSink {
             // don't use the decoded path. Use the original one
         }
 
-        blobUri = URI.create(path);
-
-        String accountName = blobUri.getHost().split("\\.")[0];
-        CloudStorageAccount account = null;
-        for (CloudStorageAccount tmpAccount : accounts) {
-            if(tmpAccount.getCredentials().getAccountName().equals(accountName)) {
-                account = tmpAccount;
-                break;
-            }
-        }
-        if (account == null) {
-            System.err.println("Connection String for " + accountName + " is not defined");
-            System.exit(-1);
-            return;
-        }
+        URI blobUri = URI.create(path);
+        CloudStorageAccount account = AccountUtils.getAccountFromUri(accounts, blobUri);
 
         upload(account, blobUri);
     }
