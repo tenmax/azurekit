@@ -186,7 +186,7 @@ public class AzureTable2Csv {
            if(commandLine.hasOption("C")) {
                 tb.setColumns(columns);
             }
-            tb.setTakeCount(1);
+            tb.setTakeCount(1000);
 
             // Query
             boolean isFirstCQL = true;

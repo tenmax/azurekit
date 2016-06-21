@@ -161,7 +161,7 @@ public class AzureTable2Json {
             if (commandLine.hasOption("C")) {
                 tb.setColumns(columns);
             }
-            tb.setTakeCount(1);
+            tb.setTakeCount(1000);
 
             // Query
             for (DynamicTableEntity dynamicTableEntity : cloudTable.execute(tb)) {
