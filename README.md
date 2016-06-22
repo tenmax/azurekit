@@ -172,5 +172,6 @@ brew install azurekit
 Upgrade azurekit
 
 ```bash
+brew update
 brew upgrade azurekit
 ```
