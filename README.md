@@ -114,14 +114,14 @@ Usage
 1. Dump a table
 
 	```bash
-	azuretbl2csv https://<account-name>.table.core.windows.net/<table-name>
-   azuretbl2json https://<account-name>.table.core.windows.net/<table-name>
+	azuretbl2csv -c <connection-string> https://<account-name>.table.core.windows.net/<table-name>
+	azuretbl2json -c <connection-string> https://<account-name>.table.core.windows.net/<table-name>
 	```
 
 2. Select some columns
 
 	```bash
-	azuretbl2json -c "column1,column2" https://<account-name>.table.core.windows.net/<table-name>
+	azuretbl2json -C "column1,column2" https://<account-name>.table.core.windows.net/<table-name>
 	```
 3. Apply filter
 
