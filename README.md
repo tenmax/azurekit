@@ -1,11 +1,11 @@
 # AzureKit
 *azurekit* is a CLI toolkit to interact with [microsoft azure blob storage](https://azure.microsoft.com/en-us/documentation/articles/storage-introduction/#blob-storage). There are several commands included.
 
-1. azruecat - Output a blob content to stdout.
-2. azuresink - Pipe stdin to a azure storage blob.
-3. azuresas - Generate the Shared-Access-Signature to stdout.
-4. azuretbl2csv - Dump azure table as csv file.
-5. azuretbl2json - Dump azure table as json file.
+1. [azruecat](#azurecat) - Output a blob content to stdout.
+2. [azuresink](#azuresink) - Pipe stdin to a azure storage blob.
+3. [azuresas](#azuresas) - Generate the Shared-Access-Signature to stdout.
+4. [azuretbl2csv](#azuretable2csv-and-azuretable2json) - Dump azure table as csv file.
+5. [azuretbl2json](#azuretable2csv-and-azuretable2json) - Dump azure table as json file.
 
 
 # Requirement
@@ -166,6 +166,7 @@ Install azurekit via [Homebrew](http://brew.sh/).
 
 ```bash
 brew tap tenmax/azure
+brew update
 brew install azurekit
 ```
 
