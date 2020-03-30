@@ -1,7 +1,7 @@
 #!/bin/bash
 cd /data
 for i in rpm deb; do
-fpm -s dir -t $i -a all -n azurekit -v 0.2.1 \
+fpm -s dir -t $i -a all -n azurekit -v 0.2.2 \
 -m pop@tenmax.io \
 --vendor tenmax \
 --license Apache \

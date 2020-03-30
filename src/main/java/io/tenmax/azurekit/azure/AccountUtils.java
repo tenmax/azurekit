@@ -29,8 +29,11 @@ public class AccountUtils {
         try (BufferedReader in = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = in.readLine()) != null) {
-                CloudStorageAccount account = CloudStorageAccount.parse(line);
-                accounts.add(account);
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    CloudStorageAccount account = CloudStorageAccount.parse(line);
+                    accounts.add(account);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
