@@ -5,45 +5,79 @@ repositories {
 }
 
 mainClassName = 'io.tenmax.azurekit.AzureCat'
-
-
-startScripts {
-    applicationName = 'azurecat'
+if (project.hasProperty('projVersion')) {
+    project.version = project.projVersion
+} else {
+    version = '0.2.2'
 }
 
-task createAllStartScripts() << {
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'azurekit',
+                   'Implementation-Version': project.version
+    }
 }
 
-def scripts = [ 'azurecat': 'io.tenmax.azurekit.AzureCat',
-                'azuresink': 'io.tenmax.azurekit.AzureSink',
-                'azuresas':'io.tenmax.azurekit.AzureSAS',
-                'azuretbl2json':'io.tenmax.azurekit.AzureTable2JSON',
-                'azuretbl2csv':'io.tenmax.azurekit.AzureTable2CSV'
-]
+task createAllStartScripts() {
+    def scripts = [ 'azurecat':     'io.tenmax.azurekit.AzureCat',
+                    'azuresink':     'io.tenmax.azurekit.AzureSink',
+                    'azuresas':      'io.tenmax.azurekit.AzureSAS',
+                    'azuretbl2json': 'io.tenmax.azurekit.AzureTable2Json',
+                    'azuretbl2csv':  'io.tenmax.azurekit.AzureTable2Csv'
+    ]
     scripts.each() { scriptName, className ->
-    def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) {
-        mainClassName = className
-        applicationName = scriptName
-        outputDir = new File(project.buildDir, 'scripts')
-        classpath = jar.outputs.files + project.configurations.runtime
+        def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts) {
+            mainClassName = className
+            applicationName = scriptName
+            outputDir = new File(project.buildDir, 'scripts')
+            classpath = jar.outputs.files + project.configurations.runtimeClasspath
+        }
+        applicationDistribution.into("bin") {
+            duplicatesStrategy = 'exclude'
+            from(t)
+            fileMode = 0755
+        }
     }
-    applicationDistribution.into("bin") {
-        from(t)
-        fileMode = 0755
+}
+
+distZip {
+    archiveFileName = archiveBaseName.get() + '.' + archiveExtension.get()
+    def noVersionFile = archiveFile.get().asFile
+    doLast {
+        archiveFileName = archiveBaseName.get() + '-' + archiveVersion.get() + '.' + archiveExtension.get()
+        def versionFile = archiveFile.get().asFile
+        noVersionFile.renameTo(versionFile)
     }
-    createAllStartScripts.dependsOn(t)
+}
+
+distTar {
+    archiveFileName = archiveBaseName.get() + '.' + archiveExtension.get()
+    def noVersionFile = archiveFile.get().asFile
+    doLast {
+        archiveFileName = archiveBaseName.get() + '-' + archiveVersion.get() + '.' + archiveExtension.get()
+        def versionFile = archiveFile.get().asFile
+        noVersionFile.renameTo(versionFile)
+    }
+}
+
+task fpm(type: Exec, dependsOn: distTar, group: 'distribution') {
+    commandLine './build-rpm-deb.sh', project.version
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.7'
-    compile 'com.microsoft.azure:azure-storage:3.0.0'
-    compile 'commons-cli:commons-cli:1.3.1'
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.apache.commons:commons-csv:1.1'
-    compile 'com.google.code.gson:gson:2.3.1'
+    implementation 'org.slf4j:slf4j-api:1.7.7'
+    implementation 'com.microsoft.azure:azure-storage:3.0.0'
+    implementation 'commons-cli:commons-cli:1.3.1'
+    implementation 'commons-io:commons-io:2.4'
+    implementation 'org.apache.commons:commons-csv:1.1'
+    implementation 'com.google.code.gson:gson:2.3.1'
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
