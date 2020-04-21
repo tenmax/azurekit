@@ -176,3 +176,11 @@ Upgrade azurekit
 brew update
 brew upgrade azurekit
 ```
+
+## Docker
+
+Run azurekit via [Docker](https://hub.docker.com/r/tenmax/azurekit).
+
+```bash
+ docker run --rm -it tenmax/azurekit
+ ```
