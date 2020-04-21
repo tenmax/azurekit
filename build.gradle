@@ -5,16 +5,20 @@ repositories {
 }
 
 mainClassName = 'io.tenmax.azurekit.AzureCat'
+project.version = '0.2.3'
+def impVersion = project.version
+
 if (project.hasProperty('projVersion')) {
     project.version = project.projVersion
-} else {
-    version = '0.2.2'
+    if (project.projVersion == 'latest') {
+        impVersion += '-SNAPSHOT'
+    }
 }
 
 jar {
     manifest {
         attributes 'Implementation-Title': 'azurekit',
-                   'Implementation-Version': project.version
+                   'Implementation-Version': impVersion
     }
 }
 
