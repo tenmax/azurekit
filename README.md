@@ -165,7 +165,7 @@ echo 'helloworld' | azurecat https://<account-name>.blob.core.windows.net/<conta
 Install azurekit via [Homebrew](http://brew.sh/).
 
 ```bash
-brew tap tenmax/azure
+brew tap tenmax/tap
 brew update
 brew install azurekit
 ```
